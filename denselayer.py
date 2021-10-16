@@ -1,4 +1,3 @@
-from numpy.random.mtrand import weibull
 from initializer import *
 from node import Node
 
@@ -26,7 +25,6 @@ class DenseLayer:
         for j in range(self.n_out):
           output.append(self.weights[i][j])
       output.extend(self.bias)
-          #output.append(sum([self.weights[i][j] for j in range(len(self.weights[i]))]) + self.bias[i])
       return output
       
     def forward(self, inputs: Sequence[Node]) -> Sequence[Node]:
