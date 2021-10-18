@@ -14,7 +14,15 @@ class TreeNode:
 
     def update_result(self, q: float):
         self.result += q
-        self.explored += 1
+        #self.explored += 1
+    
+    def append_exploration(self):
+        v = self
+        while True:
+            v.explored += 1
+            if v.parent is None:
+                break
+            v = v.parent
 
     def explore(self) -> TreeNode:
         action = None
@@ -33,6 +41,9 @@ class TreeNode:
     def get_explores(self) -> int:
         return self.explored
     
+    def get_unexplored(self) -> int:
+        return len(self.actions) - len(self.childNodes)
+
     def fully_explored(self) -> bool:
         return len(self.actions) == len(self.childNodes)
 
