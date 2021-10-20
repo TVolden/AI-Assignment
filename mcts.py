@@ -7,12 +7,8 @@ import chess
 import random
 from multiprocessing import Pool, cpu_count
 import os
-
+from policy import Policy
 from tree import TreeNode
-
-class Policy:
-    def pick_move(self, board: chess.Board) -> chess.Move:
-        pass
 
 class RandomPolicy(Policy):
     def pick_move(self, board: chess.Board) -> chess.Move:
@@ -44,12 +40,13 @@ class Proc:
         self.active = False
 
 class MonteCarloTreeSearch:
-    def __init__(self, exploration_weight=1, time_budget=1, policy: Policy = RandomPolicy(), parallel:bool = False) -> None:
+    def __init__(self, exploration_weight=1, time_budget=1, policy: Policy = RandomPolicy(), parallel:bool = False, heuristic_rebate = 0.1) -> None:
         self.policy = policy
         self.c = exploration_weight
         self.time_budget = time_budget
         self.player = None
         self.parallel = parallel
+        self.rebate = heuristic_rebate
 
     def _playouts(self, node:TreeNode, n_playouts:int = 64) -> float:
         #start_time = time.time()
@@ -84,6 +81,10 @@ class MonteCarloTreeSearch:
 
     def _backpropagate(self, node:TreeNode, reward):
         "Send the reward back up the ancestors of the leaf"
+        
+        # Update trainable policies
+        self.policy.update(node.parent.state, node.action, reward, node.state)
+
         v = node
         while True:
             v.update_result(reward)
@@ -103,8 +104,11 @@ class MonteCarloTreeSearch:
             
             # Calculate a score
             # 1. Take the average from previous simulations (win:1, draw:0.5, loss=0)
-            # 2. Add the upper confidence bound (√2ln(n)/nj)
-            result = child.get_average() + self.c * math.sqrt((2*math.log(parent.get_explores()+1))/(child.get_explores()+1))
+            # 2. Heuristic for action + self.policy.expected_reward(parent.state, child.action)
+            # 3. Add the upper confidence bound (√2ln(n)/nj)
+            result = child.get_average() + \
+                self.rebate * self.policy.expected_reward(parent.state, child.action) + \
+                self.c * math.sqrt((2*math.log(parent.get_explores()+1))/(child.get_explores()+1))
             
             # If this child score is the best current score
             if result > best_result:
@@ -157,5 +161,5 @@ class MonteCarloTreeSearch:
             self._parallel(v0)
         else:
             self._serial(v0)
-        print("Explorations: %s" % (v0.get_explores()))
+        #print("Explorations: %s" % (v0.get_explores()))
         return self._uct_select(v0).action
