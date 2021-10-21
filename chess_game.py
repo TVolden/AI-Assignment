@@ -98,7 +98,7 @@ if __name__ == '__main__':
         print(f">>> {episode+1}: White: {wins[0]}/{games}, Black: {wins[1]}/{games}")
         rewards.append(wins[0])
 
-        with open('qtable-nightly.json', 'w') as outfile:
+        with open('qtable.json', 'w') as outfile:
             json.dump(policy.table, fp=outfile)
 
     print("Rewards over episodes:")
