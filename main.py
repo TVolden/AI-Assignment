@@ -12,7 +12,7 @@ if __name__ == '__main__':
     
     print()
     ex = input(f"Choose experiment [0-{len(experiment_list)-1}]: ")
-    while not ex.isnumeric() and int(ex) not in range(len(experiment_list)):
+    while not ex.isnumeric() or (0 < int(ex) and int(ex) >= len(experiment_list)):
         print("Please write the number of the experiment you want to run.")
         ex = input(f"Choose experiment [0-{len(experiment_list)-1}]: ")
     

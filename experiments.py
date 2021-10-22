@@ -3,6 +3,7 @@ from chess_intell import ChessIntell
 from chess_utils import PIECE_ORDER
 from data_sampler import DataSampler
 from mcts import DecisiveMovePolicy, MonteCarloTreeSearch
+from policy import Policy
 from qtable import QTable
 import numpy as np
 import json
@@ -188,7 +189,7 @@ def e2_mate_in_two_MCTS_QLearning():
     print(f">>> Test result: White: {wins[0]}/{games}, Black: {wins[1]}/{games}")
 
     save = input("Want to save Q-Table? [Yes/No] (default=No): ")
-    if save in ["Yes", "yes", "Y", "y"]:
+    if save.lower() in ["yes", "y"]:
         with open('qtable-experimet2.json', 'w') as outfile:
             json.dump(policy.table, fp=outfile)
 
@@ -199,7 +200,7 @@ def e3_mate_in_two_MCTS_DQN():
     print("Warning! This experiment take a long time! Like half a year or so. :(")
     print("I recommend running this with a debugger and halting the process to see what's happening.")
     con = input("Continue? [Yes/No] (default=Yes): ")
-    if con in ["No", "no", "NO", "N", "n"]:
+    if con.lower() in ["no", "n"]:
         return
 
     print("Before we begin, we have to set the parameters for the experiment.")
@@ -286,14 +287,61 @@ def e3_mate_in_two_MCTS_DQN():
     print(f">>> Test result: White: {wins[0]}/{games}, Black: {wins[1]}/{games}")
 
     save = input("Want to save Q-Table? [Yes/No] (default=No): ")
-    if save in ["Yes", "yes", "Y", "y"]:
+    if save.lower() in ["yes", "y"]:
         with open('qtable-experimet2.json', 'w') as outfile:
             json.dump(policy.table, fp=outfile)
 
         print("Q-Table saved as qtable-experiment2.json")
 
 def play_chess():
-    pass
+    ##############
+    # Game setup #
+    ##############
+    policy = DecisiveMovePolicy()
+    q = input("May the Monte Carlo Tree search use QTable lookups? [Yes/No] (default=No): ")
+    if q.lower() in ["yes", "y"]:
+        policy = QTable(ε=0.3)
+        with open('qtable.json') as json_file:
+            policy.table = json.load(json_file)
+
+    time_budget = 30
+    tb = input(f"Time budget to train [seconds] (default={time_budget}): ")
+    if tb.isnumeric() and int(tb) > 0:
+        time_budget = int(tb)
+   
+    c = 0.3
+    mcts = MonteCarloTreeSearch(exploration_weight=c, time_budget=time_budget, parallel=True, policy=policy)
+
+    players = (human_input, mcts.choose) # Human plays white
+    w = input("Which color would you like to play? [White/Black] (default=White): ")
+    if w.lower() in ["black", "b"]:
+        players = (mcts.choose, human_input) # Human plays black
+
+    #################
+    # Initiate game #
+    #################
+
+    player = 1 # Reset the current player
+    turn = 1 # Reset the number of full turns
+    board = chess.Board(chess.Board.starting_fen) # Reset the board state
+
+    # Run the game until it's game over or the maximal number of full turns have been reached
+    while not board.is_game_over():
+        player = 1 - player # Switch the player
+        
+        move = players[player](board) # Call the input method set in game configuration
+        print(f"Turn {turn}: Player {player+1} moved: {board.san(move)}")
+        board.push(move) # Alter the game state with the chosen action
+        print(board)
+        turn += player # Increment the turn counter when player 2 has played
+
+    print_moves(chess.Board.starting_fen, board)
+
+    # Check win conditions
+    if board.is_stalemate():
+        print("It's a draw!")    
+    elif board.is_game_over():
+        print(f"Player {player + 1} wins!")
 
 experiment_list = [
     ("Solve a mate in one puzzle with a MCTS algorithm.", e1_mate_in_one_MCTS),
