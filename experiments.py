@@ -27,49 +27,55 @@ def human_input(b: chess.Board) -> chess.Move:
         return move
 
 def e1_mate_in_one_MCTS():
-    ##############
-    # Game setup #
-    ##############
+    wanna_play = True
+    while wanna_play:
+        print("Before we begin, we have to set the parameters for the experiment.")
 
-    # Random policy where the legal move generator checks if an action causes game over and returns it
-    policy = DecisiveMovePolicy()
-    time_budget = 1
-    c = 0.3
-    mcts = MonteCarloTreeSearch(exploration_weight=0.3, time_budget=time_budget, parallel=True, policy=policy)
-    players = (mcts.choose, mcts.choose) # Play against it self
+        p = input("Should I use parallel processes? [Yes/no] (default=yes): ")
+        parallel = p.lower() not in ["no", "n"]
+            
+        ##############
+        # Game setup #
+        ##############    
 
-    # We set turn limit to one, since the MCTS should be able to defeat the opponent in one move
-    turn_limit = 1 # 0 = no turn limit
+        # Random policy where the legal move generator checks if an action causes game over and returns it
+        policy = DecisiveMovePolicy()
+        time_budget = 1
+        c = 0.3
+        mcts = MonteCarloTreeSearch(exploration_weight=0.3, time_budget=time_budget, parallel=parallel, policy=policy)
+        players = (mcts.choose, mcts.choose) # Play against it self
 
-    #################
-    # Initiate game #
-    #################
+        # We set turn limit to one, since the MCTS should be able to defeat the opponent in one move
+        turn_limit = 1 # 0 = no turn limit
 
-    player = 1 # Reset the current player
-    turn = 1 # Reset the number of full turns
-    board = chess.Board(mate1_puzzle) # Reset the board state
+        #################
+        # Initiate game #
+        #################
 
-    # Run the game until it's game over or the maximal number of full turns have been reached
-    while not board.is_game_over() and (turn_limit == 0 or turn <= turn_limit):
-        player = 1 - player # Switch the player
-        
-        move = players[player](board) # Call the input method set in game configuration
-        print(f"Turn {turn}: Player {player+1} moved: {board.san(move)}")
-        board.push(move) # Alter the game state with the chosen action
-        turn += player # Increment the turn counter when player 2 has played
+        player = 1 # Reset the current player
+        turn = 1 # Reset the number of full turns
+        board = chess.Board(mate1_puzzle) # Reset the board state
 
-    print_moves(mate1_puzzle, board)
+        # Run the game until it's game over or the maximal number of full turns have been reached
+        while not board.is_game_over() and (turn_limit == 0 or turn <= turn_limit):
+            player = 1 - player # Switch the player
+            
+            move = players[player](board) # Call the input method set in game configuration
+            print(f"Turn {turn}: Player {player+1} moved: {board.san(move)}")
+            board.push(move) # Alter the game state with the chosen action
+            turn += player # Increment the turn counter when player 2 has played
 
-    # Check win conditions
-    if board.is_stalemate():
-        print("It's a draw!")
-        return 0
-    elif board.is_game_over():
-        print(f"Player {player + 1} wins!")
-        return (1 - player) * 2 - 1 # Return 1 if white wins or -1 if black wins
-    else:
-        print("Max turns reached!")
-        return 0
+        print_moves(mate1_puzzle, board)
+
+        # Check win conditions
+        if board.is_stalemate():
+            print("It's a draw!")
+        elif board.is_game_over():
+            print(f"Player {player + 1} wins!")
+        else:
+            print("Max turns reached!")
+
+        wanna_play = input("Wanna try again? [Yes/No] (default=No): ").lower() in ["yes", "y"]
 
 def e2_mate_in_two_MCTS_QLearning():
     print("Before we begin, we have to set the parameters for the experiment.")
@@ -294,6 +300,7 @@ def e3_mate_in_two_MCTS_DQN():
         print("Q-Table saved as qtable-experiment2.json")
 
 def play_chess():
+    print("Before we begin, we have to set the parameters for the experiment.")
     ##############
     # Game setup #
     ##############
