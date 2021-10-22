@@ -161,5 +161,5 @@ class MonteCarloTreeSearch:
             self._parallel(v0)
         else:
             self._serial(v0)
-        #print("Explorations: %s" % (v0.get_explores()))
+        print("Explorations: %s" % (v0.get_explores()))
         return self._uct_select(v0).action

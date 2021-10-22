@@ -1,7 +1,8 @@
 from initializer import *
+from nn_layer import NNLayer
 from node import Node
 
-class DenseLayer:
+class DenseLayer(NNLayer):
     def __init__(self, n_in: int, n_out: int, act_fn, initializer: Initializer = NormalInitializer()):
         """
           n_in: the number of inputs to the layer
