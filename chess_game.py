@@ -136,3 +136,4 @@ if __name__ == '__main__':
 
     print("Rewards over episodes:")
     print(rewards)
+    
